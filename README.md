@@ -80,7 +80,7 @@ flowchart LR
 
 ### Шаг 1. Клонирование репозитория и настройка переменных окружения
 ```bash
-git clone <URL_ВАШЕГО_РЕПОЗИТОРИЯ>
+git clone https://github.com/krasnovdanial/Open_Meteo_Data_ETL
 cd hw-1
 cp .env.example .env
 ```
