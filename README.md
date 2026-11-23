@@ -6,11 +6,11 @@
 
 ## 1. Описание источника данных
 
-- Название и тип: Open-Meteo Historical Weather API (публичный REST API, формат ответа — JSON).
-- Endpoint: `https://archive-api.open-meteo.com/v1/archive`
-- Параметры запроса: `latitude`, `longitude`, `start_date`, `end_date`, `hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m`, `timezone=UTC`.
-- Объём данных: 43 800 почасовых наблюдений для 5 городов: Bergen, Budapest, Moscow, Vienna, Zurich* за период с `2025-01-01` по `2025-12-31`, 365 дней × 24 часа × 5 городов.
-- Обоснование выбора: API не требует авторизации и секретных ключей (воспроизводимость запуска из коробки), поддерживает батчевое извлечение по временным окнам и координатам, а также возвращает вложенные массивы временных рядов, требующие нормализации и приведения типов на этапе Transform.
+- **Название и тип:** Open-Meteo Historical Weather API (публичный REST API, формат ответа — JSON).
+- **Endpoint:** `https://archive-api.open-meteo.com/v1/archive`
+- **Параметры запроса:** `latitude`, `longitude`, `start_date`, `end_date`, `hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m`, `timezone=UTC`.
+- **Объём данных:** 43 800 почасовых наблюдений для 5 городов (Bergen, Budapest, Moscow, Vienna, Zurich) за период с `2025-01-01` по `2025-12-31` (365 дней × 24 часа × 5 городов).
+- **Обоснование выбора:** API не требует авторизации и секретных ключей (воспроизводимость запуска из коробки), поддерживает батчевое извлечение по временным окнам и координатам, а также возвращает вложенные массивы временных рядов, требующие нормализации и приведения типов на этапе Transform.
 
 ---
 
@@ -80,7 +80,7 @@ flowchart LR
 
 ### Шаг 1. Клонирование репозитория и настройка переменных окружения
 ```bash
-git clone https://github.com/krasnovdanial/Open_Meteo_Data_ETL
+git clone [https://github.com/krasnovdanial/Open_Meteo_Data_ETL](https://github.com/krasnovdanial/Open_Meteo_Data_ETL)
 cd Open_Meteo_Data_ETL
 cp .env.example .env
 ```
@@ -119,10 +119,13 @@ docker exec -it hw1_postgres psql -U etl_user -d weather_dw -c "SELECT COUNT(*) 
 После выполнения ноутбука в таблицу загружается **43 800** записей (почасовые наблюдения за 365 дней для 5 городов). Сводка по городам и первые 5 строк таблицы приведены ниже:
 
 ```text
+Всего строк в таблице raw_weather.hourly_observations: 43800
+
+Сводка по городам:
        city  rows_cnt  avg_temp_c  avg_comfort_c
 0    Bergen      8760        7.88           4.73
 1  Budapest      8760       12.50          10.27
-2    Moscow      8760       11.77           8.97
+2    Moscow      8760        8.16           5.21
 3    Vienna      8760       11.53           8.86
 4    Zurich      8760       10.40           8.88
 
@@ -130,7 +133,7 @@ docker exec -it hw1_postgres psql -U etl_user -d weather_dw -c "SELECT COUNT(*) 
        city measured_at  temperature_c  humidity_pct  precipitation_mm  wind_speed_kmh  heat_index_c
 0    Bergen  2025-01-01          -1.60         85.00              0.10            9.10         -5.85
 1  Budapest  2025-01-01          -1.80         96.00              0.00            4.00         -4.88
-2    Moscow  2025-01-01          -4.40         98.00              0.00            4.20         -7.79
+2    Moscow  2025-01-01          -3.50         85.00              0.00           13.50         -8.80
 3    Vienna  2025-01-01          -4.20         94.00              0.00            7.20         -8.21
 4    Zurich  2025-01-01          -1.90         99.00              0.00            2.60         -4.67
 ```
@@ -139,6 +142,6 @@ docker exec -it hw1_postgres psql -U etl_user -d weather_dw -c "SELECT COUNT(*) 
 
 ## 7. Что можно улучшить
 
-1. Оркестрация и расписание: Перенести логику из ноутбука в модульный Python-пакет и запускать по расписанию через Apache Airflow с инкрементальной загрузкой за вчерашний день допустим.
-2. Валидация контрактов данных: Подключить Pydantic перед загрузкой в БД для проверки физических границ показателей.
-3. Слой витрин: Добавить SQL-представления или dbt-модели для расчёта среднесуточных аномалий и ветро-холодового индекса.
+1. **Оркестрация и расписание:** Перенести логику из ноутбука в модульный Python-пакет и запускать по расписанию через Apache Airflow с инкрементальной загрузкой за вчерашний день.
+2. **Валидация контрактов данных:** Подключить Pydantic перед загрузкой в БД для проверки физических границ показателей.
+3. **Слой витрин:** Добавить SQL-представления или dbt-модели для расчёта среднесуточных аномалий и ветро-холодового индекса.
